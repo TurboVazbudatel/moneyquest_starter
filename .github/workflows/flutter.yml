@@ -1,0 +1,53 @@
+name: Flutter CI
+
+on:
+  push:
+    branches: [ main, "refactor/**", "feature/**" ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-test:
+    runs-on: macos-14
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Flutter version
+        run: flutter --version
+
+      - name: Install deps
+        run: flutter pub get
+
+      - name: Static checks
+        run: |
+          flutter format --set-exit-if-changed .
+          flutter analyze
+
+      - name: Run tests
+        run: flutter test --coverage
+
+      - name: Build macOS (debug)
+        run: flutter build macos --debug
+
+      # Если нужен iOS-архив — оставь закомментировано до подключения подписей
+      # - name: Build iOS (debug)
+      #   run: flutter build ios --debug --no-codesign
+
+      - name: Upload coverage
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage
+          path: coverage/lcov.info
+
+      - name: Upload macOS app
+        uses: actions/upload-artifact@v4
+        with:
+          name: moneyquest-macos-debug
+          path: build/macos/Build/Products/Debug/moneyquest.app
