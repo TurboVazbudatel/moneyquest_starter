@@ -1,1 +1,0 @@
-/* theme file content placeholder */
